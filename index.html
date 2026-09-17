@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#2563eb">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>ClassCatch - Unified Dataset</title>
+<style>
+:root {
+  --c-pri: #2563eb; --c-pri-dk: #1d4ed8; --c-pri-lt: #dbeafe; --c-pri-bg: #eff6ff;
+  --c-acc: #f59e0b; --c-acc-lt: #fef3c7; --c-acc-dk: #b45309;
+  --c-ok: #10b981; --c-ok-lt: #d1fae5; --c-ok-dk: #065f46;
+  --c-err: #ef4444; --c-err-lt: #fee2e2; --c-err-dk: #991b1b;
+  --c-wrn: #f59e0b; --c-wrn-lt: #fef3c7;
+  --bg: #f8fafc; --surf: #ffffff; --surf2: #f1f5f9;
+  --txt: #0f172a; --txt2: #475569; --txt3: #94a3b8;
+  --brd: #e2e8f0; --div: #f1f5f9;
+  --sh-sm: 0 1px 3px rgba(0,0,0,0.06); --sh-md: 0 4px 6px -1px rgba(0,0,0,0.07);
+  --sh-lg: 0 10px 15px -3px rgba(0,0,0,0.08);
+  --r-sm: 8px; --r: 12px; --r-lg: 16px; --r-xl: 24px; --r-full: 9999px;
+  --font: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --ease: cubic-bezier(0.4, 0, 0.2, 1); --safe-b: env(safe-area-inset-bottom, 0px);
+}
+[data-theme="dark"] {
+  --c-pri: #3b82f6; --c-pri-dk: #60a5fa; --c-pri-lt: #1e3a5f; --c-pri-bg: #172554;
+  --c-acc-lt: #422006; --c-ok-lt: #064e3b; --c-err-lt: #450a0a; --c-wrn-lt: #451a03;
+  --bg: #020617; --surf: #0f172a; --surf2: #1e293b;
+  --txt: #f1f5f9; --txt2: #94a3b8; --txt3: #64748b;
+  --brd: #1e293b; --div: #1e293b;
+  --sh-sm: 0 1px 3px rgba(0,0,0,0.4); --sh-md: 0 4px 6px rgba(0,0,0,0.4);
+  --sh-lg: 0 10px 15px rgba(0,0,0,0.5);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth}
+body{font-family:var(--font);background:var(--bg);color:var(--txt);line-height:1.5;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+#app{max-width:480px;margin:0 auto;min-height:100dvh;background:var(--bg);position:relative}
+@media(min-width:768px){#app{border-left:1px solid var(--brd);border-right:1px solid var(--brd);box-shadow:var(--sh-lg)}}
+
+.app-header{position:sticky;top:0;z-index:100;background:rgba(255,255,255,0.88);backdrop-filter:blur(12px) saturate(180%);-webkit-backdrop-filter:blur(12px) saturate(180%);border-bottom:1px solid var(--brd);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;transition:background .3s}
+[data-theme="dark"] .app-header{background:rgba(15,23,42,0.88)}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:18px;color:var(--c-pri);letter-spacing:-.3px}
+.brand-icon{width:32px;height:32px;background:linear-gradient(135deg,var(--c-pri),#3b82f6);border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;font-weight:900}
+.header-actions{display:flex;gap:6px}
+.page-content{padding:16px 16px calc(80px + var(--safe-b));animation:fadeIn .3s var(--ease)}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:rgba(255,255,255,0.92);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-top:1px solid var(--brd);display:flex;justify-content:space-around;padding:6px 8px calc(6px + var(--safe-b));z-index:100;transition:background .3s}
+[data-theme="dark"] .bottom-nav{background:rgba(15,23,42,0.92)}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px;border:none;background:none;cursor:pointer;color:var(--txt3);font-size:10px;font-weight:600;font-family:var(--font);transition:color .2s;border-radius:var(--r);position:relative}
+.nav-item svg{width:24px;height:24px;stroke-width:1.8;transition:all .2s var(--ease)}
+.nav-item.active{color:var(--c-pri)}
+.nav-item.active svg{stroke-width:2.5;transform:translateY(-1px)}
+.nav-badge{position:absolute;top:2px;right:calc(50% - 18px);width:8px;height:8px;background:var(--c-err);border-radius:50%;border:2px solid var(--surf)}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 20px;border-radius:var(--r);font-size:14px;font-weight:600;border:none;cursor:pointer;font-family:var(--font);transition:all .2s var(--ease);width:100%;text-decoration:none;line-height:1.4}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:var(--c-pri);color:#fff;box-shadow:0 2px 8px rgba(37,99,235,.3)}
+.btn-primary:hover{background:var(--c-pri-dk)}
+.btn-accent{background:linear-gradient(135deg,var(--c-acc),#fbbf24);color:#1e293b;font-weight:700;box-shadow:0 2px 8px rgba(245,158,11,.3)}
+.btn-outline{background:transparent;border:1.5px solid var(--brd);color:var(--txt)}
+.btn-outline:hover{border-color:var(--c-pri);color:var(--c-pri);background:var(--c-pri-bg)}
+.btn-danger{background:var(--c-err);color:#fff}
+.btn-sm{padding:8px 14px;font-size:13px;width:auto;border-radius:var(--r-sm)}
+.btn-icon{width:40px;height:40px;padding:0;border-radius:50%;background:var(--surf2);color:var(--txt);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s}
+.btn-icon:hover{background:var(--c-pri-lt);color:var(--c-pri)}
+
+.card{background:var(--surf);border:1px solid var(--brd);border-radius:var(--r-lg);padding:16px;margin-bottom:12px;box-shadow:var(--sh-sm);transition:box-shadow .2s}
+.card-elevated{box-shadow:var(--sh-md);border-color:transparent}
+.card-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px}
+
+.form-group{margin-bottom:16px}
+.form-label{display:block;font-size:13px;font-weight:600;color:var(--txt2);margin-bottom:6px}
+.form-input{width:100%;padding:12px 14px;border:1.5px solid var(--brd);border-radius:var(--r);background:var(--surf);color:var(--txt);font-size:15px;font-family:var(--font);transition:all .2s;outline:none;appearance:none;-webkit-appearance:none}
+.form-input:focus{border-color:var(--c-pri);box-shadow:0 0 0 3px var(--c-pri-lt)}
+.form-input::placeholder{color:var(--txt3)}
+textarea.form-input{min-height:100px;resize:vertical;line-height:1.5}
+select.form-input{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:40px}
+
+.tag{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:var(--r-full);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;white-space:nowrap}
+.tag-blue{background:var(--c-pri-lt);color:var(--c-pri-dk)}
+.tag-green{background:var(--c-ok-lt);color:var(--c-ok-dk)}
+.tag-yellow{background:var(--c-wrn-lt);color:var(--c-acc-dk)}
+.tag-red{background:var(--c-err-lt);color:var(--c-err-dk)}
+
+.progress-track{width:100%;height:6px;background:var(--surf2);border-radius:var(--r-full);overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--c-pri),#60a5fa);border-radius:var(--r-full);transition:width .6s var(--ease)}
+
+.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:20px}
+.stat-card{background:var(--surf);border:1px solid var(--brd);border-radius:var(--r);padding:14px 8px;text-align:center}
+.stat-value{font-size:24px;font-weight:800;color:var(--c-pri);line-height:1.2}
+.stat-label{font-size:10px;font-weight:600;color:var(--txt3);text-transform:uppercase;letter-spacing:.5px;margin-top:4px}
+
+.check-item{display:flex;align-items:center;gap:12px;padding:14px;border:1.5px solid var(--brd);border-radius:var(--r);margin-bottom:8px;cursor:pointer;transition:all .2s;background:var(--surf);user-select:none}
+.check-item:hover{border-color:var(--c-pri-lt);background:var(--c-pri-bg)}
+.check-item.done{border-color:var(--c-ok);background:var(--c-ok-lt)}
+.check-item.done .check-label{text-decoration:line-through;color:var(--txt3)}
+.check-box{width:22px;height:22px;border:2px solid var(--brd);border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;color:transparent}
+.check-item.done .check-box{background:var(--c-ok);border-color:var(--c-ok);color:#fff}
+
+.quiz-opt{display:flex;align-items:center;gap:12px;padding:14px 16px;border:1.5px solid var(--brd);border-radius:var(--r);margin-bottom:8px;cursor:pointer;transition:all .2s;font-size:14px;font-weight:500}
+.quiz-opt:hover{border-color:var(--c-pri)}
+.quiz-opt.selected{border-color:var(--c-pri);background:var(--c-pri-lt);color:var(--c-pri-dk)}
+.quiz-radio{width:20px;height:20px;border:2px solid var(--brd);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s}
+.quiz-opt.selected .quiz-radio{border-color:var(--c-pri)}
+.quiz-opt.selected .quiz-radio::after{content:'';width:10px;height:10px;background:var(--c-pri);border-radius:50%}
+
+.sheet-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;opacity:0;visibility:hidden;transition:all .3s;backdrop-filter:blur(4px);display:flex;align-items:flex-end;justify-content:center}
+.sheet-overlay.open{opacity:1;visibility:visible}
+.sheet{background:var(--surf);width:100%;max-width:480px;max-height:92dvh;border-radius:var(--r-xl) var(--r-xl) 0 0;padding:8px 20px calc(20px + var(--safe-b));overflow-y:auto;transform:translateY(100%);transition:transform .35s var(--ease);overscroll-behavior:contain}
+.sheet-overlay.open .sheet{transform:translateY(0)}
+.sheet-handle{width:36px;height:4px;background:var(--brd);border-radius:var(--r-full);margin:8px auto 20px}
+.sheet-title{font-size:20px;font-weight:700;margin-bottom:20px;letter-spacing:-.3px}
+
+.toast-wrap{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:300;display:flex;flex-direction:column;gap:8px;pointer-events:none;width:90%;max-width:400px}
+.toast{background:var(--txt);color:var(--bg);padding:14px 18px;border-radius:var(--r);font-size:14px;font-weight:500;box-shadow:var(--sh-lg);display:flex;align-items:center;gap:10px;pointer-events:auto;animation:toastIn .3s var(--ease),toastOut .3s var(--ease) 2.7s forwards}
+@keyframes toastIn{from{opacity:0;transform:translateY(-12px) scale(.95)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes toastOut{to{opacity:0;transform:translateY(-8px) scale(.95)}}
+
+.empty{text-align:center;padding:48px 24px}
+.empty-icon{width:64px;height:64px;margin:0 auto 16px;color:var(--txt3);opacity:.4}
+.empty h3{font-size:16px;color:var(--txt2);margin-bottom:6px}
+.empty p{font-size:13px;color:var(--txt3);max-width:260px;margin:0 auto}
+
+.auth-screen{min-height:100dvh;display:flex;flex-direction:column;justify-content:center;padding:24px;background:linear-gradient(160deg,#1e3a8a 0%,var(--c-pri) 50%,#3b82f6 100%)}
+.auth-card{background:var(--surf);border-radius:var(--r-xl);padding:32px 24px;box-shadow:var(--sh-xl);width:100%;max-width:420px;align-self:center}
+.auth-tabs{display:flex;background:var(--surf2);padding:4px;border-radius:var(--r);margin-bottom:24px}
+.auth-tab{flex:1;padding:10px;text-align:center;font-size:14px;font-weight:600;color:var(--txt3);background:none;border:none;border-radius:var(--r-sm);cursor:pointer;transition:all .2s;font-family:var(--font)}
+.auth-tab.active{background:var(--surf);color:var(--c-pri);box-shadow:var(--sh-sm)}
+
+.lesson-row{display:flex;gap:14px;padding:16px;background:var(--surf);border:1px solid var(--brd);border-radius:var(--r-lg);margin-bottom:10px;transition:all .2s;cursor:pointer}
+.lesson-row:active{transform:scale(.985);background:var(--surf2)}
+.lesson-icon{width:48px;height:48px;border-radius:var(--r);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.lesson-body{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center}
+.lesson-title{font-size:15px;font-weight:700;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lesson-meta{font-size:12px;color:var(--txt2);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.lesson-sep{color:var(--txt3)}
+
+.flex{display:flex}.flex-col{flex-direction:column}.items-center{align-items:center}.justify-between{justify-content:space-between}.gap-2{gap:8px}.gap-3{gap:12px}.mt-2{margin-top:8px}.mt-3{margin-top:12px}.mt-4{margin-top:16px}.mb-2{margin-bottom:8px}.mb-3{margin-bottom:12px}.mb-4{margin-bottom:16px}.text-xs{font-size:11px}.text-sm{font-size:13px}.font-bold{font-weight:700}.text-muted{color:var(--txt2)}.text-tertiary{color:var(--txt3)}.w-full{width:100%}
+.section-title{font-size:16px;font-weight:700;margin-bottom:12px;letter-spacing:-.2px}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div class="toast-wrap" id="toasts"></div>
+
+<script>
+/**
+ * =====================================================================
+ * CLASSCATCH UNIFIED DATASET BUILD
+ * Pre-seeded relational DB | RBAC | PWA Architecture
+ * =====================================================================
+ */
+
+const ICO = {
+  logo:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>`,
+  home:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`,
+  bell:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>`,
+  user:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`,
+  edit:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>`,
+  check:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`,
+  back:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>`,
+  sun:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`,
+  moon:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`,
+  empty:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>`,
+  plus:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>`,
+  book:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>`,
+  users:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`,
+};
+
+// ─── UNIFIED DATASET SEEDER ─────────────────────────────────────────
+function seedUnifiedDataset() {
+  const subjects = [
+    {id:'sub_math',name:'Mathematics',icon:'📐'},
+    {id:'sub_eng',name:'English',icon:'📜'},
+    {id:'sub_cs',name:'Computer Science',icon:'💻'},
+    {id:'sub_phy',name:'Physics',icon:'🔬'},
+    {id:'sub_chem',name:'Chemistry',icon:'⚗️'},
+    {id:'sub_hist',name:'History',icon:'🏛️'}
+  ];
+  const classes = [
+    {id:'cls_9a',name:'9-A'},{id:'cls_9b',name:'9-B'},
+    {id:'cls_10a',name:'10-A'},{id:'cls_10b',name:'10-B'}
+  ];
+  const teachers = [
+    {id:'t_kapoor',name:'Mrs. Kapoor',username:'kapoor',password:'1234',role:'teacher',subjectId:'sub_math'},
+    {id:'t_sharma',name:'Mr. Sharma',username:'sharma',password:'1234',role:'teacher',subjectId:'sub_eng'},
+    {id:'t_patel',name:'Ms. Patel',username:'patel',password:'1234',role:'teacher',subjectId:'sub_cs'},
+    {id:'t_reddy',name:'Mr. Reddy',username:'reddy',password:'1234',role:'teacher',subjectId:'sub_phy'},
+    {id:'t_gupta',name:'Mrs. Gupta',username:'gupta',password:'1234',role:'teacher',subjectId:'sub_chem'},
+    {id:'t_nair',name:'Mr. Nair',username:'nair',password:'1234',role:'teacher',subjectId:'sub_hist'},
+    {id:'t_desai',name:'Ms. Desai',username:'desai',password:'1234',role:'teacher',subjectId:'sub_math'},
+    {id:'t_iyer',name:'Mr. Iyer',username:'iyer',password:'1234',role:'teacher',subjectId:'sub_cs'}
+  ];
+  const students = [
+    {id:'s_aarav',name:'Aarav Sharma',username:'aarav',password:'1234',role:'student',classId:'cls_9a'},
+    {id:'s_meera',name:'Meera Iyer',username:'meera',password:'1234',role:'student',classId:'cls_9a'},
+    {id:'s_rohan',name:'Rohan Das',username:'rohan',password:'1234',role:'student',classId:'cls_9a'},
+    {id:'s_sana',name:'Sana Khan',username:'sana',password:'1234',role:'student',classId:'cls_9a'},
+    {id:'s_dev',name:'Dev Patel',username:'dev',password:'1234',role:'student',classId:'cls_9a'},
+    {id:'s_priya',name:'Priya Menon',username:'priya',password:'1234',role:'student',classId:'cls_9a'},
+    {id:'s_arjun',name:'Arjun Rao',username:'arjun',password:'1234',role:'student',classId:'cls_9b'},
+    {id:'s_kavya',name:'Kavya Nair',username:'kavya',password:'1234',role:'student',classId:'cls_9b'},
+    {id:'s_vikram',name:'Vikram Singh',username:'vikram',password:'1234',role:'student',classId:'cls_9b'},
+    {id:'s_ananya',name:'Ananya Gupta',username:'ananya',password:'1234',role:'student',classId:'cls_9b'},
+    {id:'s_rahul',name:'Rahul Verma',username:'rahul',password:'1234',role:'student',classId:'cls_9b'},
+    {id:'s_nisha',name:'Nisha Reddy',username:'nisha',password:'1234',role:'student',classId:'cls_10a'},
+    {id:'s_karan',name:'Karan Malhotra',username:'karan',password:'1234',role:'student',classId:'cls_10a'},
+    {id:'s_divya',name:'Divya Joshi',username:'divya',password:'1234',role:'student',classId:'cls_10a'},
+    {id:'s_aditya',name:'Aditya Kumar',username:'aditya',password:'1234',role:'student',classId:'cls_10a'},
+    {id:'s_riya',name:'Riya Saxena',username:'riya',password:'1234',role:'student',classId:'cls_10a'},
+    {id:'s_siddharth',name:'Siddharth Bose',username:'siddharth',password:'1234',role:'student',classId:'cls_10b'},
+    {id:'s_pooja',name:'Pooja Agarwal',username:'pooja',password:'1234',role:'student',classId:'cls_10b'},
+    {id:'s_varun',name:'Varun Tiwari',username:'varun',password:'1234',role:'student',classId:'cls_10b'},
+    {id:'s_neha',name:'Neha Chopra',username:'neha',password:'1234',role:'student',classId:'cls_10b'},
+    {id:'s_amit',name:'Amit Yadav',username:'amit',password:'1234',role:'student',classId:'cls_10b'},
+    {id:'s_tanvi',name:'Tanvi Deshmukh',username:'tanvi',password:'1234',role:'student',classId:'cls_10b'}
+  ];
+  const reps = [
+    {id:'rep_9a',name:'Aarav Sharma',username:'rep9a',password:'1234',role:'rep',classId:'cls_9a'},
+    {id:'rep_9b',name:'Arjun Rao',username:'rep9b',password:'1234',role:'rep',classId:'cls_9b'},
+    {id:'rep_10a',name:'Nisha Reddy',username:'rep10a',password:'1234',role:'rep',classId:'cls_10a'},
+    {id:'rep_10b',name:'Siddharth Bose',username:'rep10b',password:'1234',role:'rep',classId:'cls_10b'}
+  ];
+
+  const mkQuiz = (topic) => [
+    {q:`What was the main concept in "${topic}"?`,opts:[topic,'Unrelated topic','Nothing covered','Review session'],a:0},
+    {q:'Which resource was recommended?',opts:['Textbook chapter','Video lecture','Both A & B','None'],a:2},
+    {q:'The homework is due:',opts:['Tomorrow','In 3 days','Next week','No homework'],a:1},
+    {q:'Key formula/term discussed:',opts:['First option','Second option','Third option','Fourth option'],a:0},
+    {q:'Should absent students review notes?',opts:['Definitely yes','Only if tested','Not necessary','Optional'],a:0}
+  ];
+
+  const lessons = [
+    {id:'l1',subjectId:'sub_math',classId:'cls_9a',teacherId:'t_kapoor',date:'2026-09-15',topic:'Quadratic Equations — Factorisation',summary:'Covered solving ax²+bx+c=0 by splitting the middle term. Key idea: find two numbers whose product is a·c and sum is b. Practiced 10 problems from NCERT Ex 4.3.',notes:[{name:'Board Notes Sept 15.jpg',type:'image'}],homework:{task:'Solve Q1-Q10 Exercise 4.3',due:'2026-09-19'},announcements:'Test on quadratics next Monday.',links:[{name:'Khan Academy Quadratics',url:'#'}],quiz:mkQuiz('Quadratic Equations'),approved:true,createdBy:'t_kapoor'},
+    {id:'l2',subjectId:'sub_eng',classId:'cls_9a',teacherId:'t_sharma',date:'2026-09-15',topic:'Formal Letter Writing',summary:'Studied format of formal letters to editor and principal. Emphasis on salutation, subject line, body structure, and closing. Read model letters from Chapter 5.',notes:[{name:'Letter_Format_Sheet.pdf',type:'pdf'}],homework:{task:'Write formal letter to editor about pollution (150 words)',due:'2026-09-20'},announcements:'Oral presentation on My Favourite Book starts Wednesday.',links:[{name:'BBC Writing Guide',url:'#'}],quiz:mkQuiz('Formal Letter Writing'),approved:true,createdBy:'t_sharma'},
+    {id:'l3',subjectId:'sub_cs',classId:'cls_9a',teacherId:'t_patel',date:'2026-09-16',topic:'Python Variables & Data Types',summary:'Started Python programming. Learned variables, data types (int, float, str, bool), and print(). Wrote first Hello World program. Discussed naming conventions.',notes:[{name:'Python_Basics.png',type:'image'},{name:'hello_world.py',type:'file'}],homework:{task:'Write Python program to add two numbers',due:'2026-09-21'},announcements:'Install Python 3.11+ before Friday lab.',links:[{name:'Python.org Beginner',url:'#'}],quiz:mkQuiz('Python Variables'),approved:true,createdBy:'t_patel'},
+    {id:'l4',subjectId:'sub_phy',classId:'cls_9a',teacherId:'t_reddy',date:'2026-09-16',topic:'Newton\'s Laws of Motion',summary:'Covered all three laws with real-world examples. Focus on F=ma numerical problems. Discussed inertia and action-reaction pairs.',notes:[{name:'Newtons_Laws_Notes.pdf',type:'pdf'}],homework:{task:'Solve numericals worksheet Q1-Q8',due:'2026-09-20'},announcements:'Lab practical next Thursday.',links:[{name:'PhET Simulation',url:'#'}],quiz:mkQuiz('Newtons Laws'),approved:true,createdBy:'t_reddy'},
+    {id:'l5',subjectId:'sub_chem',classId:'cls_9a',teacherId:'t_gupta',date:'2026-09-17',topic:'Atomic Structure — Bohr Model',summary:'Discussed Bohr\'s postulates, energy levels, and electron configuration. Solved problems on maximum electrons per shell (2n²).',notes:[{name:'Bohr_Model_Diagram.jpg',type:'image'}],homework:{task:'Write electronic config for elements Z=1 to Z=20',due:'2026-09-22'},announcements:'',links:[],quiz:mkQuiz('Bohr Model'),approved:true,createdBy:'t_gupta'},
+    {id:'l6',subjectId:'sub_math',classId:'cls_9b',teacherId:'t_desai',date:'2026-09-15',topic:'Linear Equations in Two Variables',summary:'Graphical method of solving linear equations. Plotting lines and finding intersection points. Consistent vs inconsistent systems.',notes:[{name:'Graph_Method_Notes.pdf',type:'pdf'}],homework:{task:'Plot graphs for Ex 3.2 Q1-Q5',due:'2026-09-19'},announcements:'',links:[{name:'Desmos Graphing Calculator',url:'#'}],quiz:mkQuiz('Linear Equations'),approved:true,createdBy:'t_desai'},
+    {id:'l7',subjectId:'sub_cs',classId:'cls_9b',teacherId:'t_iyer',date:'2026-09-16',topic:'HTML Basics & Tags',summary:'Introduction to HTML structure, head/body tags, headings, paragraphs, links, and images. Built a simple personal webpage.',notes:[{name:'HTML_CheatSheet.pdf',type:'pdf'}],homework:{task:'Create a personal bio page with at least 5 tags',due:'2026-09-21'},announcements:'Bring laptops for next class.',links:[{name:'MDN Web Docs',url:'#'}],quiz:mkQuiz('HTML Basics'),approved:true,createdBy:'t_iyer'},
+    {id:'l8',subjectId:'sub_hist',classId:'cls_9b',teacherId:'t_nair',date:'2026-09-16',topic:'French Revolution — Causes & Events',summary:'Covered social inequality, financial crisis, Estates General, Tennis Court Oath, and Storming of Bastille. Timeline analysis activity.',notes:[{name:'French_Rev_Timeline.jpg',type:'image'}],homework:{task:'Write 200-word essay on causes of French Revolution',due:'2026-09-22'},announcements:'Documentary screening Friday.',links:[],quiz:mkQuiz('French Revolution'),approved:true,createdBy:'t_nair'},
+    {id:'l9',subjectId:'sub_math',classId:'cls_10a',teacherId:'t_kapoor',date:'2026-09-15',topic:'Trigonometry — Introduction',summary:'Introduced trig ratios sin, cos, tan using right triangles. Standard angles 0°, 30°, 45°, 60°, 90°. Trigonometric table construction.',notes:[{name:'Trig_Table.pdf',type:'pdf'},{name:'Trig_Ratios_Board.jpg',type:'image'}],homework:{task:'Complete trig table and solve Ex 8.1 Q1-Q7',due:'2026-09-19'},announcements:'Trig identities quiz next week.',links:[{name:'Trig Visualizer',url:'#'}],quiz:mkQuiz('Trigonometry Intro'),approved:true,createdBy:'t_kapoor'},
+    {id:'l10',subjectId:'sub_phy',classId:'cls_10a',teacherId:'t_reddy',date:'2026-09-16',topic:'Light — Reflection & Mirrors',summary:'Laws of reflection, concave/convex mirrors, ray diagrams, mirror formula 1/f=1/v+1/u. Sign convention practice.',notes:[{name:'Mirror_Ray_Diagrams.pdf',type:'pdf'}],homework:{task:'Draw ray diagrams for 6 cases + numerical Q1-Q5',due:'2026-09-21'},announcements:'',links:[],quiz:mkQuiz('Light Reflection'),approved:true,createdBy:'t_reddy'},
+    {id:'l11',subjectId:'sub_eng',classId:'cls_10a',teacherId:'t_sharma',date:'2026-09-17',topic:'Poetry Analysis — The Road Not Taken',summary:'Close reading of Frost\'s poem. Literary devices: metaphor, imagery, tone. Theme of choices and regret. Group discussion on personal interpretations.',notes:[{name:'Road_Not_Taken_Analysis.pdf',type:'pdf'}],homework:{task:'Write appreciation paragraph (120 words)',due:'2026-09-22'},announcements:'',links:[{name:'Poetry Foundation',url:'#'}],quiz:mkQuiz('Road Not Taken'),approved:true,createdBy:'t_sharma'},
+    {id:'l12',subjectId:'sub_chem',classId:'cls_10a',teacherId:'t_gupta',date:'2026-09-17',topic:'Chemical Reactions & Equations',summary:'Types of reactions: combination, decomposition, displacement, double displacement. Balancing equations practice. Real-life examples.',notes:[{name:'Reaction_Types_Chart.jpg',type:'image'}],homework:{task:'Balance 15 equations from worksheet',due:'2026-09-21'},announcements:'Lab on reaction types Thursday.',links:[],quiz:mkQuiz('Chemical Reactions'),approved:true,createdBy:'t_gupta'},
+    {id:'l13',subjectId:'sub_cs',classId:'cls_10b',teacherId:'t_patel',date:'2026-09-15',topic:'Python Control Flow — If/Else',summary:'Conditional statements, comparison operators, logical operators, nested if-else. Solved grade calculator and leap year checker programs.',notes:[{name:'Control_Flow_Notes.pdf',type:'pdf'}],homework:{task:'Write programs: even/odd checker, largest of 3 numbers',due:'2026-09-20'},announcements:'',links:[{name:'Python Practice',url:'#'}],quiz:mkQuiz('Python If Else'),approved:true,createdBy:'t_patel'},
+    {id:'l14',subjectId:'sub_math',classId:'cls_10b',teacherId:'t_desai',date:'2026-09-16',topic:'Arithmetic Progressions',summary:'Definition of AP, nth term formula an=a+(n-1)d, sum formula Sn=n/2[2a+(n-1)d]. Solved word problems on seating arrangements and savings.',notes:[{name:'AP_Formulas.pdf',type:'pdf'}],homework:{task:'Ex 5.2 Q1-Q12',due:'2026-09-21'},announcements:'AP test next Tuesday.',links:[],quiz:mkQuiz('Arithmetic Progressions'),approved:true,createdBy:'t_desai'},
+    {id:'l15',subjectId:'sub_hist',classId:'cls_10b',teacherId:'t_nair',date:'2026-09-16',topic:'Nationalism in India — Civil Disobedience',summary:'Salt March, Dandi March significance, Gandhi-Irwin Pact, participation of women and peasants. Comparison with Non-Cooperation Movement.',notes:[{name:'Civil_Disobedience_Map.jpg',type:'image'},{name:'Timeline_1930.pdf',type:'pdf'}],homework:{task:'Compare NCM and CDM in tabular form',due:'2026-09-22'},announcements:'Map work test Friday.',links:[],quiz:mkQuiz('Civil Disobedience'),approved:true,createdBy:'t_nair'},
+    {id:'l16',subjectId:'sub_phy',classId:'cls_10b',teacherId:'t_reddy',date:'2026-09-17',topic:'Electricity — Ohm\'s Law',summary:'Current, potential difference, resistance. Ohm\'s law V=IR. Series and parallel combinations. Solved circuit numericals.',notes:[{name:'Ohms_Law_Notes.pdf',type:'pdf'}],homework:{task:'Circuit numericals worksheet Q1-Q10',due:'2026-09-22'},announcements:'Practical on resistance measurement next week.',links:[{name:'Circuit Simulator',url:'#'}],quiz:mkQuiz('Ohms Law'),approved:true,createdBy:'t_reddy'},
+    {id:'l17',subjectId:'sub_eng',classId:'cls_9b',teacherId:'t_sharma',date:'2026-09-17',topic:'Narrative Writing Techniques',summary:'Story structure: exposition, rising action, climax, falling action, resolution. Show don\'t tell technique. Peer review workshop.',notes:[{name:'Narrative_Structure.pdf',type:'pdf'}],homework:{task:'Write a 300-word narrative using learned techniques',due:'2026-09-23'},announcements:'',links:[],quiz:mkQuiz('Narrative Writing'),approved:true,createdBy:'t_sharma'},
+    {id:'l18',subjectId:'sub_chem',classId:'cls_9b',teacherId:'t_gupta',date:'2026-09-17',topic:'States of Matter & Phase Changes',summary:'Solid, liquid, gas properties. Melting, boiling, sublimation, deposition. Latent heat concepts. Heating curve analysis.',notes:[{name:'Heating_Curve_Graph.jpg',type:'image'}],homework:{task:'Label heating curve + define latent heat terms',due:'2026-09-22'},announcements:'',links:[],quiz:mkQuiz('States of Matter'),approved:true,createdBy:'t_gupta'}
+  ];
+
+  // Absences: realistic distribution across classes
+  const absences = [
+    {studentId:'s_aarav',lessonId:'l1'},{studentId:'s_meera',lessonId:'l1'},{studentId:'s_rohan',lessonId:'l3'},
+    {studentId:'s_sana',lessonId:'l4'},{studentId:'s_dev',lessonId:'l5'},{studentId:'s_priya',lessonId:'l2'},
+    {studentId:'s_aarav',lessonId:'l3'},{studentId:'s_meera',lessonId:'l4'},
+    {studentId:'s_arjun',lessonId:'l6'},{studentId:'s_kavya',lessonId:'l7'},{studentId:'s_vikram',lessonId:'l8'},
+    {studentId:'s_ananya',lessonId:'l6'},{studentId:'s_rahul',lessonId:'l7'},
+    {studentId:'s_nisha',lessonId:'l9'},{studentId:'s_karan',lessonId:'l10'},{studentId:'s_divya',lessonId:'l11'},
+    {studentId:'s_aditya',lessonId:'l12'},{studentId:'s_riya',lessonId:'l9'},
+    {studentId:'s_siddharth',lessonId:'l13'},{studentId:'s_pooja',lessonId:'l14'},{studentId:'s_varun',lessonId:'l15'},
+    {studentId:'s_neha',lessonId:'l16'},{studentId:'s_amit',lessonId:'l13'},{studentId:'s_tanvi',lessonId:'l14'}
+  ];
+
+  // Pre-fill some progress and quiz submissions
+  const progress = {};
+  const quizSubs = {};
+  ['s_aarav_l1','s_meera_l1'].forEach(k => { progress[k] = {summary:true,notes:true,hw:true,announce:true,links:true}; });
+  ['s_arjun_l6','s_nisha_l9'].forEach(k => { progress[k] = {summary:true,notes:true,hw:false,announce:false,links:false}; });
+  ['s_aarav_l1','s_meera_l1','s_arjun_l6'].forEach(k => { quizSubs[k] = {score:4,total:5,at:'2026-09-17T10:00:00Z'}; });
+  quizSubs['s_nisha_l9'] = {score:2,total:5,at:'2026-09-17T11:00:00Z'};
+
+  // Notifications for absent students
+  const notifications = {};
+  absences.forEach(a => {
+    const L = lessons.find(l=>l.id===a.lessonId);
+    if(L) {
+      notifications[a.studentId] = notifications[a.studentId] || [];
+      notifications[a.studentId].push({id:'n_'+a.studentId+'_'+a.lessonId,title:'📚 Catch-up Ready',body:`${L.topic} material is ready for review.`,at:'2026-09-17T09:00:00Z',read:false});
+    }
+  });
+
+  return {users:[...teachers,...students,...reps],subjects,classes,lessons,absences,progress,quizSubs,drafts:[],notifications,theme:'light'};
+}
+
+// ─── DATABASE ENGINE ────────────────────────────────────────────────
+const DB_KEY = 'classcatch_unified_v5';
+let db;
+
+function initDB() {
+  try { const r = localStorage.getItem(DB_KEY); if (r) { db = JSON.parse(r); return; } } catch(e) {}
+  db = seedUnifiedDataset();
+  save();
+}
+function save() { localStorage.setItem(DB_KEY, JSON.stringify(db)); }
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,9); }
+function getUser(id) { return db.users.find(u => u.id === id); }
+function getSubject(id) { return db.subjects.find(s => s.id === id); }
+function getClass(id) { return db.classes.find(c => c.id === id); }
+function getLesson(id) { return db.lessons.find(l => l.id === id); }
+function fmtDate(d) {
+  if (!d) return '';
+  const x = new Date(d), t = new Date('2026-09-17');
+  if (x.toDateString() === t.toDateString()) return 'Today';
+  const y = new Date(t); y.setDate(y.getDate()-1);
+  if (x.toDateString() === y.toDateString()) return 'Yesterday';
+  return x.toLocaleDateString('en-IN', { day:'numeric', month:'short' });
+}
+
+// ─── SESSION & ROUTER ───────────────────────────────────────────────
+let session = JSON.parse(localStorage.getItem('cc_session') || 'null');
+let state = { view: session ? 'home' : 'auth', authTab: 'login', lessonId: null, sheet: null };
+
+function doLogin(user) { session = user; localStorage.setItem('cc_session', JSON.stringify(user)); state.view = 'home'; render(); }
+function doLogout() { session = null; localStorage.removeItem('cc_session'); state.view = 'auth'; state.authTab = 'login'; render(); }
+function go(view, params = {}) { state = { ...state, view, ...params, sheet: null }; render(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+
+// ─── NOTIFICATIONS & TOASTS ─────────────────────────────────────────
+function notify(userId, title, body) {
+  if (!userId) return;
+  db.notifications[userId] = db.notifications[userId] || [];
+  db.notifications[userId].unshift({ id: uid(), title, body, at: new Date().toISOString(), read: false });
+  save();
+}
+function unreadCount(uid) { return (db.notifications[uid] || []).filter(n => !n.read).length; }
+function toast(msg, type = 'info') {
+  const icons = { info: 'ℹ️', success: '✅', error: '❌', warning: '⚠️' };
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.innerHTML = `<span>${icons[type] || ''}</span><span>${msg}</span>`;
+  document.getElementById('toasts').appendChild(el);
+  setTimeout(() => el.remove(), 3200);
+}
+
+// ─── DOM BUILDER ────────────────────────────────────────────────────
+function h(tag, attrs = {}, ...children) {
+  const e = document.createElement(tag);
+  for (const k in attrs) {
+    if (k === 'class') e.className = attrs[k];
+    else if (k === 'html') e.innerHTML = attrs[k];
+    else if (k.startsWith('on')) e.addEventListener(k.slice(2).toLowerCase(), attrs[k]);
+    else e.setAttribute(k, attrs[k]);
+  }
+  children.flat(Infinity).forEach(c => {
+    if (c == null || c === false) return;
+    e.appendChild(typeof c === 'string' || typeof c === 'number' ? document.createTextNode(String(c)) : c);
+  });
+  return e;
+}
+
+// ─── MAIN RENDER ────────────────────────────────────────────────────
+function render() {
+  const root = document.getElementById('app');
+  root.innerHTML = '';
+  document.documentElement.setAttribute('data-theme', db.theme || 'light');
+
+  if (!session) { root.appendChild(renderAuth()); return; }
+
+  const shell = h('div');
+  shell.appendChild(renderHeader());
+  const content = h('div', { class: 'page-content' });
+
+  switch (state.view) {
+    case 'home': content.appendChild(session.role === 'teacher' ? renderTeacherHome() : renderStudentHome()); break;
+    case 'lesson': content.appendChild(renderLesson(state.lessonId)); break;
+    case 'quiz': content.appendChild(renderQuiz(state.lessonId)); break;
+    case 'notif': content.appendChild(renderNotifs()); break;
+    case 'profile': content.appendChild(renderProfile()); break;
+    case 'rep': content.appendChild(renderRep()); break;
+    default: content.appendChild(session.role === 'teacher' ? renderTeacherHome() : renderStudentHome());
+  }
+
+  shell.appendChild(content);
+  shell.appendChild(renderNav());
+  root.appendChild(shell);
+  if (state.sheet) root.appendChild(state.sheet);
+}
+
+// ─── AUTH SCREEN ────────────────────────────────────────────────────
+function renderAuth() {
+  const screen = h('div', { class: 'auth-screen' });
+  const card = h('div', { class: 'auth-card' });
+
+  const brand = h('div', { style: 'display:flex;align-items:center;gap:10px;justify-content:center;margin-bottom:28px;' },
+    h('div', { class: 'brand-icon', style: 'width:44px;height:44px;font-size:20px;border-radius:12px;' }, 'C'),
+    h('h1', { style: 'font-size:26px;color:var(--c-pri);letter-spacing:-.5px;' }, 'ClassCatch')
+  );
+  card.appendChild(brand);
+
+  const tabs = h('div', { class: 'auth-tabs' });
+  ['login', 'register'].forEach(t => {
+    tabs.appendChild(h('button', {
+      class: 'auth-tab' + (state.authTab === t ? ' active' : ''),
+      onClick: () => { state.authTab = t; render(); }
+    }, t === 'login' ? 'Sign In' : 'Create Account'));
+  });
+  card.appendChild(tabs);
+
+  if (state.authTab === 'login') {
+    const uI = h('input', { class: 'form-input', placeholder: 'Username', autocomplete: 'username' });
+    const pI = h('input', { class: 'form-input', type: 'password', placeholder: 'Password', autocomplete: 'current-password' });
+    const err = h('div', { style: 'color:var(--c-err);font-size:13px;min-height:18px;margin-bottom:12px;font-weight:500;' });
+    card.append(
+      h('div', { class: 'form-group' }, h('label', { class: 'form-label' }, 'Username'), uI),
+      h('div', { class: 'form-group' }, h('label', { class: 'form-label' }, 'Password'), pI),
+      err,
+      h('button', { class: 'btn btn-primary', onClick: () => {
+        const u = uI.value.trim().toLowerCase(), p = pI.value;
+        if (!u || !p) { err.textContent = 'Please fill all fields'; return; }
+        const user = db.users.find(x => x.username === u && x.password === p);
+        if (!user) { err.textContent = 'Invalid username or password'; return; }
+        doLogin(user);
+      }}, 'Sign In'),
+      h('p', { class: 'text-xs text-muted', style: 'text-align:center;margin-top:16px;' }, 'Try: aarav / 1234 (student) • kapoor / 1234 (teacher) • rep9a / 1234 (rep)')
+    );
+  } else {
+    const nI = h('input', { class: 'form-input', placeholder: 'Your full name' });
+    const uI = h('input', { class: 'form-input', placeholder: 'Choose a username' });
+    const pI = h('input', { class: 'form-input', type: 'password', placeholder: 'Password (min 4 chars)' });
+    const rS = h('select', { class: 'form-input' });
+    rS.append(h('option', { value: '' }, 'Select role'), h('option', { value: 'student' }, 'Student'), h('option', { value: 'teacher' }, 'Teacher'), h('option', { value: 'rep' }, 'Class Rep'));
+    const dyn = h('div');
+    function updateDyn() {
+      dyn.innerHTML = '';
+      if (rS.value === 'student' || rS.value === 'rep') {
+        const cs = h('select', { class: 'form-input' }); cs.appendChild(h('option', { value: '' }, 'Select class'));
+        db.classes.forEach(c => cs.appendChild(h('option', { value: c.id }, c.name)));
+        dyn.append(h('label', { class: 'form-label' }, 'Class'), cs);
+        dyn._get = () => cs.value || null;
+      } else if (rS.value === 'teacher') {
+        const si = h('input', { class: 'form-input', placeholder: 'Subject (e.g., Mathematics)' });
+        dyn.append(h('label', { class: 'form-label' }, 'Subject'), si);
+        dyn._get = () => si.value.trim();
+      }
+    }
+    rS.addEventListener('change', updateDyn); updateDyn();
+    const err = h('div', { style: 'color:var(--c-err);font-size:13px;min-height:18px;margin-bottom:12px;font-weight:500;' });
+    card.append(
+      h('div', { class: 'form-group' }, h('label', { class: 'form-label' }, 'Full Name'), nI),
+      h('div', { class: 'form-group' }, h('label', { class: 'form-label' }, 'Username'), uI),
+      h('div', { class: 'form-group' }, h('label', { class: 'form-label' }, 'Password'), pI),
+      h('div', { class: 'form-group' }, h('label', { class: 'form-label' }, 'Role'), rS),
+      dyn, err,
+      h('button', { class: 'btn btn-primary mt-2', onClick: () => {
+        const name = nI.value.trim(), username = uI.value.trim().toLowerCase(), password = pI.value, role = rS.value;
+        if (!name || !username || !password || !role) { err.textContent = 'All fields required'; return; }
+        if (password.length < 4) { err.textContent = 'Min 4 char password'; return; }
+        if (db.users.find(u => u.username === username)) { err.textContent = 'Username taken'; return; }
+        let classId = null, subjectId = null;
+        if (role === 'student' || role === 'rep') { classId = dyn._get?.(); if (!classId) { err.textContent = 'Select a class'; return; } }
+        if (role === 'teacher') { const sn = dyn._get?.(); if (!sn) { err.textContent = 'Enter subject'; return; } let ex = db.subjects.find(s => s.name.toLowerCase() === sn.toLowerCase()); if (!ex) { ex = { id: uid(), name: sn, icon: '📘' }; db.subjects.push(ex); } subjectId = ex.id; }
+        db.users.push({ id: uid(), name, username, password, role, classId, subjectId, createdAt: new Date().toISOString() });
+        save(); toast('Account created!', 'success'); state.authTab = 'login'; render();
+      }}, 'Create Account')
+    );
+  }
+  screen.appendChild(card);
+  return screen;
+}
+
+// ─── HEADER & NAV ───────────────────────────────────────────────────
+function renderHeader() {
+  const hdr = h('header', { class: 'app-header' });
+  hdr.appendChild(h('div', { class: 'brand' }, h('div', { class: 'brand-icon' }, 'C'), 'ClassCatch'));
+  const actions = h('div', { class: 'header-actions' });
+  actions.appendChild(h('button', { class: 'btn-icon', html: db.theme === 'light' ? ICO.moon : ICO.sun, onClick: () => { db.theme = db.theme === 'light' ? 'dark' : 'light'; save(); render(); }}));
+  const bell = h('button', { class: 'btn-icon', html: ICO.bell, onClick: () => go('notif') });
+  if (unreadCount(session.id) > 0) bell.appendChild(h('span', { style: 'position:absolute;top:6px;right:6px;width:8px;height:8px;background:var(--c-err);border-radius:50%;border:2px solid var(--surf);' }));
+  actions.appendChild(bell);
+  hdr.appendChild(actions);
+  return hdr;
+}
+
+function renderNav() {
+  const nav = h('nav', { class: 'bottom-nav' });
+  const items = [{ v: 'home', i: ICO.home, l: 'Home' }];
+  if (session.role === 'rep') items.push({ v: 'rep', i: ICO.edit, l: 'Draft' });
+  items.push({ v: 'notif', i: ICO.bell, l: 'Alerts' }, { v: 'profile', i: ICO.user, l: 'Profile' });
+  items.forEach(it => {
+    const b = h('button', { class: 'nav-item' + (state.view === it.v ? ' active' : ''), onClick: () => go(it.v) });
+    b.innerHTML = it.i + `<span>${it.l}</span>`;
+    nav.appendChild(b);
+  });
+  return nav;
+}
+
+// ─── STUDENT DASHBOARD ──────────────────────────────────────────────
+function renderStudentHome() {
+  const w = h('div');
+  w.appendChild(h('h1', { class: 'mb-2', style: 'font-size:24px;letter-spacing:-.5px;' }, `Hi, ${session.name.split(' ')[0]} 👋`));
+  w.appendChild(h('p', { class: 'text-muted mb-4' }, 'Stay on track with your missed classes.'));
+
+  const myAbs = db.absences.filter(a => a.studentId === session.id);
+  const missed = myAbs.map(a => getLesson(a.lessonId)).filter(Boolean);
+  const done = missed.filter(L => { const p = db.progress[session.id + '_' + L.id] || {}; return p.summary && p.notes && p.hw; }).length;
+
+  const sg = h('div', { class: 'stats-grid' });
+  sg.append(
+    h('div', { class: 'stat-card' }, h('div', { class: 'stat-value' }, String(missed.length)), h('div', { class: 'stat-label' }, 'Missed')),
+    h('div', { class: 'stat-card' }, h('div', { class: 'stat-value' }, String(done)), h('div', { class: 'stat-label' }, 'Done')),
+    h('div', { class: 'stat-card' }, h('div', { class: 'stat-value' }, String(missed.length - done)), h('div', { class: 'stat-label' }, 'Pending'))
+  );
+  w.appendChild(sg);
+
+  const today = '2026-09-17';
+  const todayL = db.lessons.filter(l => l.classId === session.classId && l.date === today && l.approved);
+  w.appendChild(h('div', { class: 'section-title' }, '📅 Today'));
+  if (!todayL.length) {
+    w.appendChild(h('div', { class: 'card text-sm text-muted', style: 'padding:14px;' }, 'No classes scheduled today.'));
+  } else {
+    todayL.forEach(L => {
+      const S = getSubject(L.subjectId), T = getUser(L.teacherId);
+      w.appendChild(h('div', { class: 'card flex justify-between items-center', style: 'padding:14px;' },
+        h('div', {}, h('div', { class: 'font-bold text-sm' }, L.topic), h('div', { class: 'text-xs text-muted mt-2' }, `${S ? S.name : ''} • ${T ? T.name : ''}`)),
+        h('span', { class: 'tag tag-green' }, 'Scheduled')
+      ));
+    });
+  }
+
+  w.appendChild(h('div', { class: 'section-title mt-4' }, '⚠️ Missed Classes'));
+  if (!missed.length) {
+    const emp = h('div', { class: 'card empty' });
+    emp.innerHTML = `<div class="empty-icon">${ICO.book}</div>`;
+    emp.append(h('h3', {}, 'All caught up!'), h('p', {}, 'No missed classes. Great attendance!'));
+    w.appendChild(emp);
+  } else {
+    missed.forEach(L => {
+      const S = getSubject(L.subjectId), T = getUser(L.teacherId);
+      const pKey = session.id + '_' + L.id, p = db.progress[pKey] || {};
+      const items = ['summary', 'notes', 'hw', 'announce', 'links'];
+      const cnt = items.filter(k => p[k]).length, pct = Math.round(cnt / items.length * 100);
+      const st = !L.approved ? { t: 'Pending', c: 'tag-red' } : (pct === 100 ? { t: 'Complete', c: 'tag-green' } : { t: 'Action Needed', c: 'tag-yellow' });
+      const colors = { '📐': 'background:var(--c-pri-lt);color:var(--c-pri)', '📜': 'background:#e0e7ff;color:#4338ca', '💻': 'background:#fce7f3;color:#be185d', '🔬': 'background:var(--c-ok-lt);color:var(--c-ok-dk)', '⚗️': 'background:var(--c-wrn-lt);color:var(--c-acc-dk)', '🏛️': 'background:#fef3c7;color:#92400e' };
+      const iconStyle = colors[S?.icon] || 'background:var(--c-pri-lt);color:var(--c-pri)';
+
+      const row = h('div', { class: 'lesson-row', onClick: () => L.approved && go('lesson', { lessonId: L.id }) });
+      row.appendChild(h('div', { class: 'lesson-icon', style: iconStyle }, S ? S.icon : '📘'));
+      const body = h('div', { class: 'lesson-body' });
+      body.appendChild(h('div', { class: 'lesson-title' }, L.topic));
+      body.appendChild(h('div', { class: 'lesson-meta' }, `${S ? S.name : ''}`, h('span', { class: 'lesson-sep' }, '•'), fmtDate(L.date), h('span', { class: 'lesson-sep' }, '•'), `${T ? T.name : ''}`));
+
+      if (L.approved) {
+        const prog = h('div', { class: 'mt-2' });
+        prog.appendChild(h('div', { class: 'flex justify-between items-center mb-2' },
+          h('span', { class: 'tag ' + st.c }, st.t),
+          h('span', { class: 'text-xs font-bold', style: 'color:var(--c-pri)' }, pct + '%')
+        ));
+        const bar = h('div', { class: 'progress-track' });
+        bar.appendChild(h('div', { class: 'progress-fill', style: `width:${pct}%` }));
+        prog.appendChild(bar);
+        body.appendChild(prog);
+        if (pct < 100) {
+          body.appendChild(h('button', { class: 'btn btn-accent btn-sm mt-3', onClick: (e) => { e.stopPropagation(); go('lesson', { lessonId: L.id }); } }, '✨ Catch Up Now'));
+        }
+      }
+      row.appendChild(body);
+      w.appendChild(row);
+    });
+  }
+  return w;
+}
+
+// ─── TEACHER DASHBOARD ──────────────────────────────────────────────
+function renderTeacherHome() {
+  const w = h('div');
+  w.appendChild(h('h1', { class: 'mb-2', style: 'font-size:24px;letter-spacing:-.5px;' }, 'Teacher Dashboard'));
+  w.appendChild(h('p', { class: 'text-muted mb-4' }, 'Manage classes and track student progress.'));
+
+  const myL = db.lessons.filter(l => l.teacherId === session.id);
+  const pendD = db.drafts.filter(d => d.status === 'pending');
+  const totAbs = myL.reduce((s, l) => s + db.absences.filter(a => a.lessonId === l.id).length, 0);
+
+  const sg = h('div', { class: 'stats-grid' });
+  sg.append(
+    h('div', { class: 'stat-card' }, h('div', { class: 'stat-value' }, String(myL.length)), h('div', { class: 'stat-label' }, 'Lessons')),
+    h('div', { class: 'stat-card' }, h('div', { class: 'stat-value' }, String(totAbs)), h('div', { class: 'stat-label' }, 'Absences')),
+    h('div', { class: 'stat-card' }, h('div', { class: 'stat-value' }, String(pendD.length)), h('div', { class: 'stat-label' }, 'Drafts'))
+  );
+  w.appendChild(sg);
+
+  const acts = h('div', { class: 'flex gap-2 mb-4' });
+  acts.append(
+    h('button', { class: 'btn btn-primary', style: 'flex:1', onClick: openCreateLesson }, h('span', { html: ICO.plus, style: 'width:16px;height:16px;' }), 'New Lesson'),
+    h('button', { class: 'btn btn-outline', style: 'flex:1', onClick: openMarkAbsent }, h('span', { html: ICO.users, style: 'width:16px;height:16px;' }), 'Attendance')
+  );
+  w.appendChild(acts);
+
+  if (pendD.length) {
+    w.appendChild(h('div', { class: 'section-title mt-3' }, '📝 Pending Approvals'));
+    pendD.forEach(d => {
+      const S = getSubject(d.subjectId), cr = getUser(d.createdBy);
+      const c = h('div', { class: 'card' });
+      c.appendChild(h('div', { class: 'card-header' }, h('strong', {}, (S ? S.name : '') + ' Draft'), h('span', { class: 'tag tag-yellow' }, 'Pending')));
+      c.appendChild(h('p', { class: 'text-sm mb-2' }, `By: ${cr ? cr.name : 'Unknown'} • ${d.topic}`));
+      c.appendChild(h('p', { class: 'text-sm text-muted' }, d.summary));
+      const br = h('div', { class: 'flex gap-2 mt-3' });
+      br.append(
+        h('button', { class: 'btn btn-primary btn-sm', onClick: () => { d.status = 'approved'; const ld = { ...d, id: d.lessonId || uid(), approved: true, teacherId: session.id }; if (!db.lessons.find(l => l.id === ld.id)) db.lessons.push(ld); db.users.filter(u => u.classId === d.classId && (u.role === 'student' || u.role === 'rep')).forEach(st => notify(st.id, '✅ Approved', `${S ? S.name : 'Class'} ready.`)); save(); toast('Approved!', 'success'); render(); }}, 'Approve'),
+        h('button', { class: 'btn btn-outline btn-sm', onClick: () => { d.status = 'rejected'; save(); toast('Rejected'); render(); }}, 'Reject')
+      );
+      c.appendChild(br); w.appendChild(c);
+    });
+  }
+
+  w.appendChild(h('div', { class: 'section-title mt-3' }, '📊 Your Lessons'));
+  if (!myL.length) {
+    const emp = h('div', { class: 'card empty' }); emp.innerHTML = `<div class="empty-icon">${ICO.book}</div>`;
+    emp.append(h('h3', {}, 'No lessons yet'), h('p', {}, 'Create your first lesson.')); w.appendChild(emp);
+  }
+  myL.forEach(L => {
+    const S = getSubject(L.subjectId), C = getClass(L.classId);
+    const ms = db.absences.filter(a => a.lessonId === L.id).length;
+    const dn = db.absences.filter(a => { if (a.lessonId !== L.id) return false; const p = db.progress[a.studentId + '_' + L.id] || {}; return p.summary && p.notes && p.hw; }).length;
+    const sc = db.absences.filter(a => a.lessonId === L.id).map(a => db.quizSubs[a.studentId + '_' + L.id]?.score).filter(x => x != null);
+    const avg = sc.length ? (sc.reduce((a, b) => a + b, 0) / sc.length).toFixed(1) : '—';
+    const c = h('div', { class: 'card' });
+    c.appendChild(h('div', { class: 'card-header' }, h('strong', {}, L.topic), h('span', { class: 'text-xs text-muted' }, fmtDate(L.date))));
+    c.appendChild(h('p', { class: 'text-xs text-muted mb-3' }, `${C ? C.name : ''} • ${S ? S.name : ''}`));
+    const st = h('div', { class: 'stats-grid', style: 'margin-bottom:0;' });
+    st.append(
+      h('div', { class: 'stat-card', style: 'padding:8px;' }, h('div', { class: 'stat-value', style: 'font-size:18px;' }, String(ms)), h('div', { class: 'stat-label' }, 'Missed')),
+      h('div', { class: 'stat-card', style: 'padding:8px;' }, h('div', { class: 'stat-value', style: 'font-size:18px;' }, String(dn)), h('div', { class: 'stat-label' }, 'Done')),
+      h('div', { class: 'stat-card', style: 'padding:8px;' }, h('div', { class: 'stat-value', style: 'font-size:18px;' }, avg + '/5'), h('div', { class: 'stat-label' }, 'Avg Quiz'))
+    );
+    c.appendChild(st);
+    c.appendChild(h('button', { class: 'btn btn-outline btn-sm w-full mt-3', onClick: () => go('lesson', { lessonId: L.id }) }, 'View Details'));
+    w.appendChild(c);
+  });
+  return w;
+}
+
+// ─── CLASS REP ──────────────────────────────────────────────────────
+function renderRep() {
+  const w = h('div');
+  w.appendChild(h('h1', { class: 'mb-2', style: 'font-size:24px;letter-spacing:-.5px;' }, 'Class Rep Tools'));
+  w.appendChild(h('p', { class: 'text-muted mb-4' }, 'Help classmates by drafting summaries.'));
+  w.appendChild(h('button', { class: 'btn btn-primary mb-4', onClick: openRepDraft }, h('span', { html: ICO.plus, style: 'width:16px;height:16px;' }), 'Draft Summary'));
+  w.appendChild(h('div', { class: 'section-title' }, 'My Drafts'));
+  const md = db.drafts.filter(d => d.createdBy === session.id);
+  if (!md.length) { const emp = h('div', { class: 'card empty' }); emp.innerHTML = `<div class="empty-icon">${ICO.edit}</div>`; emp.append(h('h3', {}, 'No drafts yet'), h('p', {}, 'Submit your first draft.')); w.appendChild(emp); }
+  md.forEach(d => {
+    const S = getSubject(d.subjectId);
+    const stC = d.status === 'approved' ? 'tag-green' : (d.status === 'rejected' ? 'tag-red' : 'tag-yellow');
+    const stT = d.status === 'approved' ? 'Approved' : (d.status === 'rejected' ? 'Rejected' : 'Pending');
+    w.appendChild(h('div', { class: 'card' }, h('div', { class: 'card-header' }, h('strong', {}, d.topic), h('span', { class: 'tag ' + stC }, stT)), h('p', { class: 'text-sm text-muted' }, fmtDate(d.date) + ' • ' + (S ? S.name : '')), h('p', { class: 'text-sm mt-2' }, d.summary)));
+  });
+  return w;
+}
+
+// ─── LESSON RECOVERY PAGE ───────────────────────────────────────────
+function renderLesson(id) {
+  const L = getLesson(id);
+  if (!L) return h('div', { class: 'card' }, 'Lesson not found.');
+  const S = getSubject(L.subjectId), T = getUser(L.teacherId);
+  const pKey = session.id + '_' + L.id;
+  db.progress[pKey] = db.progress[pKey] || {};
+  const p = db.progress[pKey];
+  const w = h('div');
+  w.appendChild(h('button', { class: 'btn btn-outline btn-sm mb-3', style: 'width:auto;', onClick: () => go('home') }, h('span', { html: ICO.back, style: 'width:16px;height:16px;' }), ' Back'));
+  const hero = h('div', { class: 'card card-elevated', style: 'background:linear-gradient(135deg,var(--c-pri),var(--c-pri-dk));color:#fff;border:none;padding:24px;' });
+  hero.appendChild(h('div', { class: 'flex items-center gap-3 mb-2' }, h('span', { style: 'font-size:36px;' }, S ? S.icon : '📘'), h('div', {}, h('h2', { style: 'color:#fff;font-size:20px;letter-spacing:-.3px;' }, L.topic), h('p', { style: 'color:rgba(255,255,255,.8);font-size:13px;margin-top:4px;' }, `${S ? S.name : ''} • ${fmtDate(L.date)} • ${T ? T.name : ''}`))));
+  w.appendChild(hero);
+
+  if (session.role !== 'teacher') {
+    const cc = h('div', { class: 'card' }); cc.appendChild(h('div', { class: 'section-title' }, 'Catch-up Checklist'));
+    [{ k: 'summary', t: 'Read the summary', ic: '📖' }, { k: 'notes', t: 'Reviewed notes/slides', ic: '🖼️' }, { k: 'hw', t: 'Noted the homework', ic: '📝' }, { k: 'announce', t: 'Read announcements', ic: '📣' }, { k: 'links', t: 'Checked recommended links', ic: '🔗' }].forEach(it => {
+      const item = h('div', { class: 'check-item' + (p[it.k] ? ' done' : ''), onClick: () => { p[it.k] = !p[it.k]; save(); render(); } });
+      item.append(h('div', { class: 'check-box', html: p[it.k] ? ICO.check : '' }), h('span', { class: 'check-label' }, it.ic + ' ' + it.t));
+      cc.appendChild(item);
+    });
+    w.appendChild(cc);
+  }
+
+  if (L.summary) w.appendChild(h('div', { class: 'card' }, h('div', { class: 'section-title' }, '📖 Summary'), h('p', { class: 'text-sm', style: 'line-height:1.7;' }, L.summary)));
+  if (L.notes && L.notes.length) { const nc = h('div', { class: 'card' }); nc.appendChild(h('div', { class: 'section-title' }, '🖼️ Notes & Slides')); L.notes.forEach(n => nc.appendChild(h('span', { class: 'tag tag-blue', style: 'margin-right:6px;margin-bottom:6px;' }, (n.type === 'image' ? '🖼️ ' : '📄 ') + n.name))); w.appendChild(nc); }
+  if (L.homework && L.homework.task) w.appendChild(h('div', { class: 'card' }, h('div', { class: 'section-title' }, '📝 Homework'), h('p', { class: 'text-sm font-bold' }, L.homework.task), L.homework.due ? h('p', { class: 'text-xs text-muted mt-2' }, 'Due: ' + fmtDate(L.homework.due)) : null));
+  if (L.announcements) w.appendChild(h('div', { class: 'card' }, h('div', { class: 'section-title' }, '📣 Announcements'), h('p', { class: 'text-sm' }, L.announcements)));
+  if (L.links && L.links.length) { const lc = h('div', { class: 'card' }); lc.appendChild(h('div', { class: 'section-title' }, '🔗 Recommended Links')); L.links.forEach(l => lc.appendChild(h('a', { href: l.url, target: '_blank', class: 'text-sm', style: 'display:block;color:var(--c-pri);margin-bottom:6px;text-decoration:none;font-weight:500;' }, '🔗 ' + l.name))); w.appendChild(lc); }
+
+  if (session.role !== 'teacher' && L.quiz && L.quiz.length) {
+    const sub = db.quizSubs[pKey];
+    const qc = h('div', { class: 'card' }); qc.appendChild(h('div', { class: 'section-title' }, '🎯 Quick Quiz'));
+    if (sub) { qc.append(h('p', { class: 'text-sm text-muted mb-3' }, `Score: ${sub.score}/${sub.total} on ${fmtDate(sub.at)}`), h('button', { class: 'btn btn-outline btn-sm', onClick: () => go('quiz', { lessonId: L.id }) }, 'Retake Quiz')); }
+    else { qc.appendChild(h('button', { class: 'btn btn-primary', onClick: () => go('quiz', { lessonId: L.id }) }, 'Take 5-Question Quiz')); }
+    w.appendChild(qc);
+  }
+  return w;
+}
+
+// ─── QUIZ ENGINE ────────────────────────────────────────────────────
+function renderQuiz(id) {
+  const L = getLesson(id);
+  if (!L || !L.quiz || !L.quiz.length) return h('div', { class: 'card' }, 'Quiz not available.');
+  const S = getSubject(L.subjectId);
+  const answers = {};
+  const w = h('div');
+  w.appendChild(h('button', { class: 'btn btn-outline btn-sm mb-3', style: 'width:auto;', onClick: () => go('lesson', { lessonId: L.id }) }, h('span', { html: ICO.back, style: 'width:16px;height:16px;' }), ' Back'));
+  w.appendChild(h('div', { class: 'card flex items-center gap-3 mb-4' }, h('span', { style: 'font-size:28px;' }, S ? S.icon : '📘'), h('div', {}, h('h3', {}, 'Quick Quiz'), h('p', { class: 'text-xs text-muted' }, L.topic))));
+  L.quiz.forEach((q, i) => {
+    const qc = h('div', { class: 'card' }); qc.appendChild(h('p', { class: 'font-bold mb-3 text-sm' }, `Q${i + 1}. ${q.q}`));
+    q.opts.forEach((o, j) => {
+      const opt = h('div', { class: 'quiz-opt', onClick: () => { answers[i] = j; qc.querySelectorAll('.quiz-opt').forEach(x => x.classList.remove('selected')); opt.classList.add('selected'); } }, h('div', { class: 'quiz-radio' }), h('span', {}, o));
+      qc.appendChild(opt);
+    });
+    w.appendChild(qc);
+  });
+  w.appendChild(h('button', { class: 'btn btn-primary mt-3', onClick: () => {
+    if (Object.keys(answers).length < L.quiz.length) { toast('Answer all questions', 'warning'); return; }
+    let score = 0; L.quiz.forEach((q, i) => { if (answers[i] === q.a) score++; });
+    db.quizSubs[session.id + '_' + L.id] = { score, total: L.quiz.length, at: new Date().toISOString() };
+    save(); showScore(score, L.quiz.length, L.id);
+  }}, 'Submit Quiz'));
+  return w;
+}
+
+function showScore(score, total, lessonId) {
+  const pct = Math.round(score / total * 100), pass = pct >= 60;
+  const ov = h('div', { class: 'sheet-overlay open', onClick: e => { if (e.target === ov) { ov.remove(); state.sheet = null; } } });
+  const sh = h('div', { class: 'sheet' });
+  sh.append(h('div', { class: 'sheet-handle' }), h('div', { class: 'sheet-title', style: 'text-align:center;' }, pass ? 'Excellent! 🎉' : 'Keep Practicing 💪'));
+  const sc = h('div', { class: 'card', style: 'text-align:center;padding:24px;background:var(--c-pri-bg);border-color:transparent;' });
+  sc.append(h('div', { style: 'font-size:48px;font-weight:800;color:var(--c-pri);line-height:1;' }, `${score}/${total}`), h('p', { class: 'text-muted mt-2' }, `${pct}% Correct`));
+  sh.appendChild(sc);
+  if (!pass) sh.appendChild(h('div', { class: 'card', style: 'background:var(--c-wrn-lt);border-color:var(--c-acc);' }, h('p', { class: 'text-sm font-bold', style: 'color:var(--c-acc-dk);' }, '📘 Below 60%. Review notes before retaking.')));
+  sh.appendChild(h('button', { class: 'btn btn-primary mt-3', onClick: () => { ov.remove(); state.sheet = null; go('lesson', { lessonId }); } }, 'Back to Lesson'));
+  ov.appendChild(sh); state.sheet = ov; render();
+}
+
+// ─── NOTIFICATIONS ──────────────────────────────────────────────────
+function renderNotifs() {
+  const w = h('div');
+  w.appendChild(h('h1', { class: 'mb-4', style: 'font-size:24px;letter-spacing:-.5px;' }, 'Notifications'));
+  const list = db.notifications[session.id] || [];
+  if (!list.length) { const emp = h('div', { class: 'card empty' }); emp.innerHTML = `<div class="empty-icon">${ICO.bell}</div>`; emp.append(h('h3', {}, 'All caught up!'), h('p', {}, 'No new notifications.')); w.appendChild(emp); return w; }
+  list.forEach(n => n.read = true); save();
+  list.forEach(n => {
+    w.appendChild(h('div', { class: 'card flex gap-3 items-center', style: 'padding:14px;' },
+      h('div', { class: 'lesson-icon', style: 'background:var(--c-pri-lt);color:var(--c-pri);width:40px;height:40px;font-size:18px;' }, '🔔'),
+      h('div', { style: 'flex:1;min-width:0;' }, h('p', { class: 'font-bold text-sm' }, n.title), h('p', { class: 'text-xs text-muted' }, n.body), h('p', { class: 'text-xs text-tertiary mt-2' }, new Date(n.at).toLocaleString()))
+    ));
+  });
+  w.appendChild(h('button', { class: 'btn btn-outline mt-3', onClick: () => { db.notifications[session.id] = []; save(); toast('Cleared'); render(); } }, 'Clear All'));
+  return w;
+}
+
+// ─── PROFILE ────────────────────────────────────────────────────────
+function renderProfile() {
+  const w = h('div');
+  w.appendChild(h('h1', { class: 'mb-2', style: 'font-size:24px;letter-spacing:-.5px;' }, session.name));
+  w.appendChild(h('p', { class: 'text-muted mb-4' }, `@${session.username} • ${session.role.charAt(0).toUpperCase() + session.role.slice(1)}`));
+  const c = h('div', { class: 'card' }); c.appendChild(h('div', { class: 'section-title' }, 'Account Details'));
+  const rows = [['Name', session.name], ['Username', session.username], ['Role', session.role]];
+  if (session.classId) { const cl = getClass(session.classId); rows.push(['Class', cl ? cl.name : session.classId]); }
+  if (session.subjectId) { const sb = getSubject(session.subjectId); rows.push(['Subject', sb ? sb.name : session.subjectId]); }
+  rows.forEach(([l, v]) => c.appendChild(h('div', { class: 'flex justify-between items-center', style: 'padding:12px 0;border-bottom:1px solid var(--div);' }, h('span', { class: 'text-sm text-muted' }, l), h('span', { class: 'text-sm font-bold' }, v))));
+  w.appendChild(c);
+  if (session.role !== 'teacher') {
+    const qh = h('div', { class: 'card' }); qh.appendChild(h('div', { class: 'section-title' }, '🎯 Quiz History'));
+    const subs = Object.entries(db.quizSubs).filter(([k]) => k.startsWith(session.id + '_'));
+    if (!subs.length) qh.appendChild(h('p', { class: 'text-sm text-muted' }, 'No quizzes taken yet.'));
+    subs.forEach(([k, v]) => { const L = getLesson(k.split('_')[1]); qh.appendChild(h('div', { class: 'flex justify-between items-center', style: 'padding:10px 0;border-bottom:1px solid var(--div);' }, h('div', {}, h('p', { class: 'text-sm font-bold' }, L ? L.topic : 'Lesson'), h('p', { class: 'text-xs text-muted' }, fmtDate(v.at))), h('span', { class: 'tag tag-blue' }, v.score + '/' + v.total))); });
+    w.appendChild(qh);
+  }
+  w.append(h('button', { class: 'btn btn-danger mt-4', onClick: doLogout }, 'Sign Out'), h('button', { class: 'btn btn-outline mt-2', onClick: () => { if (confirm('Delete ALL data?')) { localStorage.removeItem(DB_KEY); localStorage.removeItem('cc_session'); location.reload(); } } }, 'Reset Database'));
+  return w;
+}
+
+// ─── SHEET SYSTEM ───────────────────────────────────────────────────
+function openSheet(title, buildFn) {
+  const ov = h('div', { class: 'sheet-overlay open', onClick: e => { if (e.target === ov) { ov.remove(); state.sheet = null; } } });
+  const sh = h('div', { class: 'sheet' });
+  sh.append(h('div', { class: 'sheet-handle' }), h('div', { class: 'sheet-title' }, title));
+  buildFn(sh, () => { ov.remove(); state.sheet = null; });
+  ov.appendChild(sh); state.sheet = ov; render();
+}
+
+function openCreateLesson() {
+  openSheet('Create New Lesson', (box, close) => {
+    const ss = h('select', { class: 'form-input' }); ss.appendChild(h('option', { value: '' }, 'Select Subject'));
+    const ms = getSubject(session.subjectId);
+    if (ms) ss.appendChild(h('option', { value: ms.id }, ms.name)); else db.subjects.forEach(s => ss.appendChild(h('option', { value: s.id }, s.name)));
+    const cs = h('select', { class: 'form-input' }); cs.appendChild(h('option', { value: '' }, 'Select Class')); db.classes.forEach(c => cs.appendChild(h('option', { value: c.id }, c.name)));
+    const topic = h('input', { class: 'form-input', placeholder: 'Topic' });
+    const dateI = h('input', { class: 'form-input', type: 'date', value: '2026-09-17' });
+    const summ = h('textarea', { class: 'form-input', placeholder: 'Summary' });
+    const hwT = h('textarea', { class: 'form-input', placeholder: 'Homework' });
+    const hwD = h('input', { class: 'form-input', type: 'date' });
+    const ann = h('textarea', { class: 'form-input', placeholder: 'Announcements' });
+    box.append(h('div',{class:'form-group'},h('label',{class:'form-label'},'Subject'),ss),h('div',{class:'form-group'},h('label',{class:'form-label'},'Class'),cs),h('div',{class:'form-group'},h('label',{class:'form-label'},'Topic'),topic),h('div',{class:'form-group'},h('label',{class:'form-label'},'Date'),dateI),h('div',{class:'form-group'},h('label',{class:'form-label'},'Summary'),summ),h('div',{class:'form-group'},h('label',{class:'form-label'},'Homework'),hwT),h('div',{class:'form-group'},h('label',{class:'form-label'},'Due Date'),hwD),h('div',{class:'form-group'},h('label',{class:'form-label'},'Announcements'),ann));
+    box.appendChild(h('button', { class: 'btn btn-primary mt-3', onClick: () => {
+      if (!ss.value||!cs.value||!topic.value||!summ.value) { toast('Fill required fields','error'); return; }
+      const newL = { id:uid(), subjectId:ss.value, classId:cs.value, teacherId:session.id, date:dateI.value, topic:topic.value, summary:summ.value, notes:[], homework:{task:hwT.value.trim(),due:hwD.value}, announcements:ann.value.trim(), links:[], quiz:[], approved:true, createdBy:session.id };
+      db.lessons.push(newL);
+      db.users.filter(u=>u.classId===cs.value&&(u.role==='student'||u.role==='rep')).forEach(st=>notify(st.id,'📚 New Lesson',topic.value));
+      save(); close(); toast('Published!','success'); render();
+    }}, 'Publish Lesson'));
+  });
+}
+
+function openMarkAbsent() {
+  openSheet('Mark Students Absent', (box, close) => {
+    const cs = h('select', { class: 'form-input' }); cs.appendChild(h('option', { value: '' }, 'Select Class')); db.classes.forEach(c => cs.appendChild(h('option', { value: c.id }, c.name)));
+    const ls = h('select', { class: 'form-input' }); ls.appendChild(h('option', { value: '' }, 'Select Lesson'));
+    const sa = h('div', { class: 'mt-3' });
+    cs.addEventListener('change', () => { ls.innerHTML = ''; ls.appendChild(h('option', { value: '' }, 'Select Lesson')); db.lessons.filter(l => l.classId === cs.value && l.teacherId === session.id).forEach(l => ls.appendChild(h('option', { value: l.id }, l.topic + ' (' + fmtDate(l.date) + ')'))); sa.innerHTML = ''; });
+    ls.addEventListener('change', () => { sa.innerHTML = ''; if (!ls.value || !cs.value) return; const students = db.users.filter(u => u.classId === cs.value && (u.role === 'student' || u.role === 'rep')); if (!students.length) { sa.appendChild(h('p', { class: 'text-sm text-muted' }, 'No students.')); return; } students.forEach(st => { const exists = db.absences.find(a => a.studentId === st.id && a.lessonId === ls.value); const lab = h('label', { class: 'check-item' + (exists ? ' done' : '') }); const cb = h('input', { type: 'checkbox' }); cb.checked = !!exists; cb.style.cssText = 'width:18px;height:18px;accent-color:var(--c-pri);flex-shrink:0;'; lab.append(cb, h('span', { class: 'check-label' }, st.name)); lab._sid = st.id; lab._cb = cb; sa.appendChild(lab); }); });
+    box.append(h('div',{class:'form-group'},h('label',{class:'form-label'},'Class'),cs),h('div',{class:'form-group'},h('label',{class:'form-label'},'Lesson'),ls),h('label',{class:'form-label'},'Check absent students'),sa);
+    box.appendChild(h('button', { class: 'btn btn-primary mt-3', onClick: () => {
+      if (!ls.value) { toast('Select lesson','error'); return; }
+      sa.querySelectorAll('.check-item').forEach(lab => { if (!lab._sid) return; const idx = db.absences.findIndex(a => a.studentId === lab._sid && a.lessonId === ls.value); if (lab._cb.checked && idx === -1) { db.absences.push({ studentId: lab._sid, lessonId: ls.value }); notify(lab._sid, '⚠️ Absent', 'Check your dashboard.'); } else if (!lab._cb.checked && idx !== -1) db.absences.splice(idx, 1); });
+      save(); close(); toast('Saved!','success'); render();
+    }}, 'Save Attendance'));
+  });
+}
+
+function openRepDraft() {
+  openSheet('Draft Class Summary', (box, close) => {
+    const ss = h('select', { class: 'form-input' }); ss.appendChild(h('option', { value: '' }, 'Select Subject')); db.subjects.forEach(s => ss.appendChild(h('option', { value: s.id }, s.name)));
+    const topic = h('input', { class: 'form-input', placeholder: 'Topic' });
+    const summ = h('textarea', { class: 'form-input', placeholder: 'Summary' });
+    box.append(h('div',{class:'form-group'},h('label',{class:'form-label'},'Subject'),ss),h('div',{class:'form-group'},h('label',{class:'form-label'},'Topic'),topic),h('div',{class:'form-group'},h('label',{class:'form-label'},'Summary'),summ),h('p',{class:'text-xs text-muted mb-3'},'⚠️ Requires teacher approval.'));
+    box.appendChild(h('button', { class: 'btn btn-primary', onClick: () => {
+      if (!ss.value||!topic.value||!summ.value) { toast('Fill required fields','error'); return; }
+      db.drafts.push({ id:uid(), lessonId:uid(), subjectId:ss.value, classId:session.classId, createdBy:session.id, date:'2026-09-17', topic:topic.value, summary:summ.value, notes:[], homework:{task:'',due:''}, announcements:'', links:[], quiz:[], status:'pending' });
+      db.users.filter(u=>u.role==='teacher'&&u.subjectId===ss.value).forEach(t=>notify(t.id,'📝 New Draft',`${session.name}: ${topic.value}`));
+      save(); close(); toast('Submitted!','success'); render();
+    }}, 'Submit Draft'));
+  });
+}
+
+// ─── BOOTSTRAP ──────────────────────────────────────────────────────
+initDB();
+render();
+</script>
+</body>
+</html>
